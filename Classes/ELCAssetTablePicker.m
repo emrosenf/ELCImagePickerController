@@ -12,7 +12,9 @@
 
 
 @implementation ELCAssetTablePicker
-
+{
+    NSInteger start;
+}
 @synthesize parent;
 @synthesize selectedAssetsLabel;
 @synthesize assetGroup, elcAssets;
@@ -30,10 +32,34 @@
 	[self.navigationItem setRightBarButtonItem:doneButtonItem];
 	[self.navigationItem setTitle:@"Loading..."];
 
+    NSInteger count = self.assetGroup.numberOfAssets;
+    NSInteger startNumberOfAssets = 24 + count%4;
+    start = MAX(0, count-startNumberOfAssets);
+    
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start, count > startNumberOfAssets ? startNumberOfAssets : count)];
+    for (int i = 0; i < start; i++){
+        [self.elcAssets addObject:[NSNull null]];
+    }
+    [self.assetGroup enumerateAssetsAtIndexes:indexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+        if(result == nil) 
+        {
+            return;
+        }
+        ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
+        [elcAsset setParent:self];
+        [self.elcAssets addObject:elcAsset];
+    }];
+    [self.tableView reloadData];
+    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil(assetGroup.numberOfAssets / 4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+    
+    // For some reason it only scrolls about 80% through the final image... This scrolls
+    // the table view all the way to the bottom. 50 is just a number thats bigger than the 
+    // sliver of the image thats covered up.
+    [self.tableView setContentOffset:CGPointMake(0, self.tableView.contentOffset.y+50)];
+//    [self.tableView reloadData];
+
 	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
     
-    // Show partial while full list loads
-	//[self.tableView performSelector:@selector(reloadData) withObject:nil afterDelay:.5];
 }
 
 -(void)preparePhotos {
@@ -42,22 +68,21 @@
 
 	
     NSLog(@"enumerating photos");
-    [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) 
-     {         
-         if(result == nil) 
-         {
-             return;
-         }
-         
-         ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
-         [elcAsset setParent:self];
-         [self.elcAssets addObject:elcAsset];
-     }];    
+
+    NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
+    [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+        if(result == nil) 
+        {
+            return;
+        }
+        ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
+        [elcAsset setParent:self];
+        [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
+    }];
     NSLog(@"done enumerating photos");
-
-	[self.tableView reloadData];
-    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil([self.assetGroup numberOfAssets]/4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
-
+    
+    [self.tableView reloadData];
+    
 	[self.navigationItem setTitle:@"Pick Photos"];
     [pool release];
 
@@ -87,7 +112,7 @@
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return ceil([self.assetGroup numberOfAssets] / 4.0);
+    return ceil(assetGroup.numberOfAssets / 4.0);
 }
 
 - (NSArray*)assetsForIndexPath:(NSIndexPath*)_indexPath {
@@ -136,14 +161,17 @@
         
     ELCAssetCell *cell = (ELCAssetCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 
+    NSMutableArray *assets = [[self assetsForIndexPath:indexPath] mutableCopy];
+    [assets removeObjectIdenticalTo:[NSNull null]];
     if (cell == nil) 
     {		        
-        cell = [[[ELCAssetCell alloc] initWithAssets:[self assetsForIndexPath:indexPath] reuseIdentifier:CellIdentifier] autorelease];
+        cell = [[[ELCAssetCell alloc] initWithAssets:assets reuseIdentifier:CellIdentifier] autorelease];
     }	
 	else 
     {		
-		[cell setAssets:[self assetsForIndexPath:indexPath]];
+		[cell setAssets:assets];
 	}
+
     
     return cell;
 }
