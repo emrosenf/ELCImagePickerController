@@ -36,6 +36,7 @@
     NSInteger startNumberOfAssets = 24 + count%4;
     start = MAX(0, count-startNumberOfAssets);
     
+    // Set up the first ~25 photos
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start, count > startNumberOfAssets ? startNumberOfAssets : count)];
     for (int i = 0; i < start; i++){
         [self.elcAssets addObject:[NSNull null]];
@@ -56,7 +57,6 @@
     // the table view all the way to the bottom. 50 is just a number thats bigger than the 
     // sliver of the image thats covered up.
     [self.tableView setContentOffset:CGPointMake(0, self.tableView.contentOffset.y+50)];
-//    [self.tableView reloadData];
 
 	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
     
