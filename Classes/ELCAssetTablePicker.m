@@ -57,7 +57,7 @@
 	
 	[self.tableView reloadData];
 	[self.navigationItem setTitle:@"Pick Photos"];
-    
+    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil([self.assetGroup numberOfAssets]/4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
     [pool release];
 
 }
