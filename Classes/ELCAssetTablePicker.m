@@ -33,7 +33,7 @@
 	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
     
     // Show partial while full list loads
-	[self.tableView performSelector:@selector(reloadData) withObject:nil afterDelay:.5];
+	//[self.tableView performSelector:@selector(reloadData) withObject:nil afterDelay:.5];
 }
 
 -(void)preparePhotos {
@@ -54,10 +54,11 @@
          [self.elcAssets addObject:elcAsset];
      }];    
     NSLog(@"done enumerating photos");
-	
+
 	[self.tableView reloadData];
-	[self.navigationItem setTitle:@"Pick Photos"];
     [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil([self.assetGroup numberOfAssets]/4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+
+	[self.navigationItem setTitle:@"Pick Photos"];
     [pool release];
 
 }
