@@ -20,7 +20,7 @@
 @synthesize assetGroup, elcAssets, reloadData;
 
 -(void)viewDidLoad {
-        
+    self.reloadData = YES;
 	[self.tableView setSeparatorColor:[UIColor clearColor]];
 	[self.tableView setAllowsSelection:NO];
 
@@ -33,10 +33,10 @@
 	[self.navigationItem setTitle:@"Loading..."];
 
     NSInteger count = self.assetGroup.numberOfAssets;
-    NSInteger startNumberOfAssets = 24 + count%4;
+    NSInteger startNumberOfAssets = 96 + count%4;
     start = MAX(0, count-startNumberOfAssets);
     
-    // Set up the first ~25 photos
+    // Set up the first ~100 photos
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start, count > startNumberOfAssets ? startNumberOfAssets : count)];
     for (int i = 0; i < start; i++){
         [self.elcAssets addObject:[NSNull null]];
@@ -81,19 +81,10 @@
         [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
     }];
     NSLog(@"done enumerating photos");
-    [self performSelectorOnMainThread:@selector(reloadTheData) withObject:nil waitUntilDone:NO];
-    //    [self.tableView reloadData];
+    [self.navigationItem performSelectorOnMainThread:@selector(setTitle:) withObject:@"Pick Photos" waitUntilDone:NO];
     
     [pool release];
 
-}
-
-- (void)reloadTheData
-{
-    if (self.reloadData){
-        [self.tableView reloadData];
-        [self.navigationItem setTitle:@"Pick Photos"];
-    }
 }
 
 - (void) doneAction:(id)sender {
