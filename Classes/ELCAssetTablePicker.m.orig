@@ -84,6 +84,12 @@
     [self performSelectorOnMainThread:@selector(reloadTheData) withObject:nil waitUntilDone:NO];
     //    [self.tableView reloadData];
     
+<<<<<<< HEAD
+  //  [self.tableView reloadData];
+    
+	[self.navigationItem setTitle:@"Pick Photos"];
+=======
+>>>>>>> 7545531... Further attempt to fix this crash and resolve concurrency problems with loading asset library in background
     [pool release];
 
 }
