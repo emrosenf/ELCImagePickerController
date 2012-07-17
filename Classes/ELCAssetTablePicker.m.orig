@@ -17,7 +17,7 @@
 }
 @synthesize parent;
 @synthesize selectedAssetsLabel;
-@synthesize assetGroup, elcAssets, reloadData;
+@synthesize assetGroup, elcAssets;
 
 -(void)viewDidLoad {
         
@@ -51,7 +51,10 @@
         [self.elcAssets addObject:elcAsset];
     }];
     [self.tableView reloadData];
+<<<<<<< HEAD
+=======
 
+>>>>>>> assettablepicker-behaves-like-iOS-photos
     [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil(assetGroup.numberOfAssets / 4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
     
     // For some reason it only scrolls about 80% through the final image... This scrolls
@@ -81,19 +84,16 @@
         [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
     }];
     NSLog(@"done enumerating photos");
-    [self performSelectorOnMainThread:@selector(reloadTheData) withObject:nil waitUntilDone:NO];
-    //    [self.tableView reloadData];
     
+<<<<<<< HEAD
+    [self.tableView reloadData];
+=======
+  //  [self.tableView reloadData];
+>>>>>>> assettablepicker-behaves-like-iOS-photos
+    
+	[self.navigationItem setTitle:@"Pick Photos"];
     [pool release];
 
-}
-
-- (void)reloadTheData
-{
-    if (self.reloadData){
-        [self.tableView reloadData];
-        [self.navigationItem setTitle:@"Pick Photos"];
-    }
 }
 
 - (void) doneAction:(id)sender {
@@ -107,7 +107,7 @@
 			[selectedAssetsImages addObject:[elcAsset asset]];
 		}
 	}
-    self.reloadData = NO;
+        
     [(ELCAlbumPickerController*)self.parent selectedAssets:selectedAssetsImages];
 }
 
