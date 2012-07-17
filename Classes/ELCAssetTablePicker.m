@@ -51,6 +51,7 @@
         [self.elcAssets addObject:elcAsset];
     }];
     [self.tableView reloadData];
+
     [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil(assetGroup.numberOfAssets / 4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
     
     // For some reason it only scrolls about 80% through the final image... This scrolls
@@ -81,7 +82,7 @@
     }];
     NSLog(@"done enumerating photos");
     
-    [self.tableView reloadData];
+  //  [self.tableView reloadData];
     
 	[self.navigationItem setTitle:@"Pick Photos"];
     [pool release];
@@ -91,10 +92,10 @@
 - (void) doneAction:(id)sender {
 	
 	NSMutableArray *selectedAssetsImages = [[[NSMutableArray alloc] init] autorelease];
-	    
-	for(ELCAsset *elcAsset in self.elcAssets) 
+    NSArray *currentlyLoadedAssets = [self.elcAssets copy];
+	for(ELCAsset *elcAsset in currentlyLoadedAssets) 
     {		
-		if([elcAsset selected]) {
+		if(elcAsset != (id)[NSNull null] && [elcAsset selected]) {
 			
 			[selectedAssetsImages addObject:[elcAsset asset]];
 		}
