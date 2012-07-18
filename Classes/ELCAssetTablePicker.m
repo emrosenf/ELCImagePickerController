@@ -17,10 +17,10 @@
 }
 @synthesize parent;
 @synthesize selectedAssetsLabel;
-@synthesize assetGroup, elcAssets;
+@synthesize assetGroup, elcAssets, reloadData;
 
 -(void)viewDidLoad {
-        
+    self.reloadData = YES;
 	[self.tableView setSeparatorColor:[UIColor clearColor]];
 	[self.tableView setAllowsSelection:NO];
 
@@ -33,10 +33,10 @@
 	[self.navigationItem setTitle:@"Loading..."];
 
     NSInteger count = self.assetGroup.numberOfAssets;
-    NSInteger startNumberOfAssets = 24 + count%4;
+    NSInteger startNumberOfAssets = 96 + count%4;
     start = MAX(0, count-startNumberOfAssets);
     
-    // Set up the first ~25 photos
+    // Set up the first ~100 photos
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start, count > startNumberOfAssets ? startNumberOfAssets : count)];
     for (int i = 0; i < start; i++){
         [self.elcAssets addObject:[NSNull null]];
@@ -51,6 +51,7 @@
         [self.elcAssets addObject:elcAsset];
     }];
     [self.tableView reloadData];
+
     [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:ceil(assetGroup.numberOfAssets / 4.0)-1 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
     
     // For some reason it only scrolls about 80% through the final image... This scrolls
@@ -80,10 +81,8 @@
         [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
     }];
     NSLog(@"done enumerating photos");
+    [self.navigationItem performSelectorOnMainThread:@selector(setTitle:) withObject:@"Pick Photos" waitUntilDone:NO];
     
-    [self.tableView reloadData];
-    
-	[self.navigationItem setTitle:@"Pick Photos"];
     [pool release];
 
 }
@@ -91,15 +90,14 @@
 - (void) doneAction:(id)sender {
 	
 	NSMutableArray *selectedAssetsImages = [[[NSMutableArray alloc] init] autorelease];
-	    
-	for(ELCAsset *elcAsset in self.elcAssets) 
+    NSArray *currentlyLoadedAssets = [self.elcAssets copy];
+	for(ELCAsset *elcAsset in currentlyLoadedAssets) 
     {		
-		if([elcAsset selected]) {
+		if(elcAsset != (id)[NSNull null] && [elcAsset selected]) {
 			
 			[selectedAssetsImages addObject:[elcAsset asset]];
 		}
 	}
-        
     [(ELCAlbumPickerController*)self.parent selectedAssets:selectedAssetsImages];
 }
 
