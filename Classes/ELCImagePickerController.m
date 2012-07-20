@@ -23,27 +23,33 @@
 }
 
 -(void)selectedAssets:(NSArray*)_assets {
+    if ([delegate respondsToSelector:@selector(elcImagePickerControllerWillFinishPickingMedia:)]){
+         [self.delegate elcImagePickerControllerWillFinishPickingMedia:self];
+    }
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSMutableArray *returnArray = [[[NSMutableArray alloc] init] autorelease];
+        for(ALAsset *asset in _assets) {
+            
+            NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
+            [workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:@"UIImagePickerControllerMediaType"];
+            [workingDictionary setObject:[UIImage imageWithCGImage:[[asset defaultRepresentation] fullScreenImage]] forKey:@"UIImagePickerControllerOriginalImage"];
+            [workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:@"UIImagePickerControllerReferenceURL"];
+            
+            [returnArray addObject:workingDictionary];
+            
+            [workingDictionary release];	
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self popToRootViewControllerAnimated:NO];
+            [[self parentViewController] dismissModalViewControllerAnimated:YES];
+            
+            if([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
+                [delegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:) withObject:self withObject:[NSArray arrayWithArray:returnArray]];
+            }
+ 
+        });
 
-	NSMutableArray *returnArray = [[[NSMutableArray alloc] init] autorelease];
-	
-	for(ALAsset *asset in _assets) {
-
-		NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
-		[workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:@"UIImagePickerControllerMediaType"];
-        [workingDictionary setObject:[UIImage imageWithCGImage:[[asset defaultRepresentation] fullScreenImage]] forKey:@"UIImagePickerControllerOriginalImage"];
-		[workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:@"UIImagePickerControllerReferenceURL"];
-		
-		[returnArray addObject:workingDictionary];
-		
-		[workingDictionary release];	
-	}
-	
-    [self popToRootViewControllerAnimated:NO];
-    [[self parentViewController] dismissModalViewControllerAnimated:YES];
-    
-	if([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
-		[delegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:) withObject:self withObject:[NSArray arrayWithArray:returnArray]];
-	}
+    });
 }
 
 #pragma mark -

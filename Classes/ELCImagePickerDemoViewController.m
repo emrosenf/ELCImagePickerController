@@ -30,10 +30,14 @@
 
 #pragma mark ELCImagePickerControllerDelegate Methods
 
+- (void)elcImagePickerControllerWillFinishPickingMedia:(ELCImagePickerController *)picker
+{
+    [self dismissModalViewControllerAnimated:YES];
+}
+
 - (void)elcImagePickerController:(ELCImagePickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info {
 	
-	[self dismissModalViewControllerAnimated:YES];
-	
+
     for (UIView *v in [scrollview subviews]) {
         [v removeFromSuperview];
     }

@@ -98,10 +98,6 @@
 			[selectedAssetsImages addObject:[elcAsset asset]];
 		}
 	}
-<<<<<<< HEAD
-    self.reloadData = NO;
-=======
->>>>>>> assettablepicker-behaves-like-iOS-photos
     [(ELCAlbumPickerController*)self.parent selectedAssets:selectedAssetsImages];
 }
 
