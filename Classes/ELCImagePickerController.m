@@ -23,8 +23,9 @@
 }
 
 -(void)selectedAssets:(NSArray*)_assets {
-    if ([delegate respondsToSelector:@selector(elcImagePickerControllerWillFinishPickingMedia:)]){
-         [self.delegate elcImagePickerControllerWillFinishPickingMedia:self];
+    if ([delegate respondsToSelector:@selector(elcImagePickerController:willFinishPickingThisManyMediaItems:)]){
+         [self.delegate elcImagePickerController:self 
+             willFinishPickingThisManyMediaItems:[NSNumber numberWithInt:_assets.count]];
     }
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSMutableArray *returnArray = [[[NSMutableArray alloc] init] autorelease];

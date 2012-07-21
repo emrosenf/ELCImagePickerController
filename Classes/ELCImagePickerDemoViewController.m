@@ -30,7 +30,7 @@
 
 #pragma mark ELCImagePickerControllerDelegate Methods
 
-- (void)elcImagePickerControllerWillFinishPickingMedia:(ELCImagePickerController *)picker
+- (void)elcImagePickerController:(ELCImagePickerController *)picker willFinishPickingThisManyMediaItems:(NSNumber *)number
 {
     [self dismissModalViewControllerAnimated:YES];
 }
