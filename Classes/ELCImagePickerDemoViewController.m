@@ -12,6 +12,9 @@
 #import "ELCAlbumPickerController.h"
 
 @implementation ELCImagePickerDemoViewController
+{
+    CGRect workingFrame;
+}
 
 @synthesize scrollview;
 
@@ -32,7 +35,28 @@
 
 - (void)elcImagePickerController:(ELCImagePickerController *)picker willFinishPickingThisManyMediaItems:(NSNumber *)number
 {
+    
+    for (UIView *v in [scrollview subviews]) {
+        [v removeFromSuperview];
+    }
+    workingFrame = scrollview.frame;
+	workingFrame.origin.x = 0;
+    [scrollview setPagingEnabled:YES];
+
     [self dismissModalViewControllerAnimated:YES];
+}
+
+- (void)elcImagePickerController:(ELCImagePickerController *)picker hasMediaWithInfo:(NSDictionary *)info
+{
+    UIImageView *imageview = [[UIImageView alloc] initWithImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+    [imageview setContentMode:UIViewContentModeScaleAspectFit];
+    imageview.frame = workingFrame;
+    
+    [scrollview addSubview:imageview];
+    [imageview release];
+    
+    workingFrame.origin.x = workingFrame.origin.x + workingFrame.size.width;
+	[scrollview setContentSize:CGSizeMake(workingFrame.origin.x, workingFrame.size.height)];
 }
 
 - (void)elcImagePickerController:(ELCImagePickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info {
@@ -42,7 +66,7 @@
         [v removeFromSuperview];
     }
     
-	CGRect workingFrame = scrollview.frame;
+	workingFrame = scrollview.frame;
 	workingFrame.origin.x = 0;
 	
 	for(NSDictionary *dict in info) {

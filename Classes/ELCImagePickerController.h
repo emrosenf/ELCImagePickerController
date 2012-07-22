@@ -14,6 +14,7 @@
 }
 
 @property (nonatomic, assign) id delegate;
+@property (nonatomic, readonly) NSArray *assets;
 
 -(void)selectedAssets:(NSArray*)_assets;
 -(void)cancelImagePicker;
@@ -27,5 +28,6 @@
 - (void)elcImagePickerControllerDidCancel:(ELCImagePickerController *)picker;
 @optional
 - (void)elcImagePickerController:(ELCImagePickerController*)picker willFinishPickingThisManyMediaItems:(NSNumber*)number;
+- (void)elcImagePickerController:(ELCImagePickerController *)picker hasMediaWithInfo:(NSDictionary*)info;
 @end
 
