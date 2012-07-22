@@ -48,15 +48,16 @@
 
 - (void)elcImagePickerController:(ELCImagePickerController *)picker hasMediaWithInfo:(NSDictionary *)info
 {
-    UIImageView *imageview = [[UIImageView alloc] initWithImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
-    [imageview setContentMode:UIViewContentModeScaleAspectFit];
-    imageview.frame = workingFrame;
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        UIImageView *imageview = [[UIImageView alloc] initWithImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+        [imageview setContentMode:UIViewContentModeScaleAspectFit];
+        imageview.frame = workingFrame;
+        [scrollview addSubview:imageview];
+        workingFrame.origin.x = workingFrame.origin.x + workingFrame.size.width;
+        [scrollview setContentSize:CGSizeMake(workingFrame.origin.x, workingFrame.size.height)];
+        [imageview release];
+    });
     
-    [scrollview addSubview:imageview];
-    [imageview release];
-    
-    workingFrame.origin.x = workingFrame.origin.x + workingFrame.size.width;
-	[scrollview setContentSize:CGSizeMake(workingFrame.origin.x, workingFrame.size.height)];
 }
 
 - (void)elcImagePickerController:(ELCImagePickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info {
