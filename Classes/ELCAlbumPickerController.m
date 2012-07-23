@@ -43,9 +43,9 @@
             {
                 return;
             }
-            
-            [self.assetGroups addObject:group];
-
+            if (group.numberOfAssets > 0){
+                [self.assetGroups addObject:group];
+            }
             // Reload albums
             [self performSelectorOnMainThread:@selector(reloadTableView) withObject:nil waitUntilDone:YES];
         };
