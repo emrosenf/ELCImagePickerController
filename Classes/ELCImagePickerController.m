@@ -32,7 +32,9 @@
         }    
 
         for(ALAsset *asset in _assets) {
-            
+            @autoreleasepool {
+                
+
             NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
             [workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:@"UIImagePickerControllerMediaType"];
             [workingDictionary setObject:[UIImage imageWithCGImage:[[asset defaultRepresentation] fullScreenImage]] forKey:@"UIImagePickerControllerOriginalImage"];
@@ -43,7 +45,9 @@
             }
 
             
-            [workingDictionary release];	
+
+            [workingDictionary release];
+            }
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             [self popToRootViewControllerAnimated:NO];
