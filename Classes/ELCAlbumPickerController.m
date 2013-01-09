@@ -34,37 +34,36 @@
     // Load Albums into assetGroups
     dispatch_async(dispatch_get_main_queue(), ^
     {
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
         
-        // Group enumerator Block
-        void (^assetGroupEnumerator)(ALAssetsGroup *, BOOL *) = ^(ALAssetsGroup *group, BOOL *stop) 
-        {
-            if (group == nil) 
+        @autoreleasepool {
+            // Group enumerator Block
+            void (^assetGroupEnumerator)(ALAssetsGroup *, BOOL *) = ^(ALAssetsGroup *group, BOOL *stop)
             {
-                return;
-            }
-            if (group.numberOfAssets > 0){
-                [self.assetGroups addObject:group];
-            }
-            // Reload albums
-            [self performSelectorOnMainThread:@selector(reloadTableView) withObject:nil waitUntilDone:YES];
-        };
-        
-        // Group Enumerator Failure Block
-        void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
+                if (group == nil)
+                {
+                    return;
+                }
+                if (group.numberOfAssets > 0){
+                    [self.assetGroups addObject:group];
+                }
+                // Reload albums
+                [self performSelectorOnMainThread:@selector(reloadTableView) withObject:nil waitUntilDone:YES];
+            };
             
-            UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-            
-        };	
+            // Group Enumerator Failure Block
+            void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
                 
-        // Enumerate Albums
-        [library enumerateGroupsWithTypes:ALAssetsGroupAll
-                               usingBlock:assetGroupEnumerator 
-                             failureBlock:assetGroupEnumberatorFailure];
-        
-        [pool release];
+                UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                [alert show];
+                [alert release];
+                
+            };
+            
+            // Enumerate Albums
+            [library enumerateGroupsWithTypes:ALAssetsGroupAll
+                                   usingBlock:assetGroupEnumerator
+                                 failureBlock:assetGroupEnumberatorFailure];
+        }
     });    
 }
 

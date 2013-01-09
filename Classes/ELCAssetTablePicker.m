@@ -65,24 +65,22 @@
 
 -(void)preparePhotos {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	
-
-    NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
-    [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-        if(result == nil) 
-        {
-            return;
-        }
-        ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
-        [elcAsset setParent:self];
-        [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
-    }];
-    [self.navigationItem performSelectorOnMainThread:@selector(setTitle:) withObject:@"Pick Photos" waitUntilDone:NO];
     
-    [pool release];
-
+	@autoreleasepool {
+        
+        NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
+        [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+            if(result == nil)
+            {
+                return;
+            }
+            ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
+            [elcAsset setParent:self];
+            [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
+        }];
+        [self.navigationItem performSelectorOnMainThread:@selector(setTitle:) withObject:@"Pick Photos" waitUntilDone:NO];
+    }
+    
 }
 
 - (void) doneAction:(id)sender {
