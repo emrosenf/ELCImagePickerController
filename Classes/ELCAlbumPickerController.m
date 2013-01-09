@@ -70,7 +70,7 @@
 -(void)reloadTableView {
 	
 	[self.tableView reloadData];
-	[self.navigationItem setTitle:@"Select an Album"];
+	[self.navigationItem setTitle:@"Albums"];
 }
 
 -(void)selectedAssets:(NSArray*)_assets {
@@ -108,6 +108,7 @@
     [g setAssetsFilter:[ALAssetsFilter allPhotos]];
     NSInteger gCount = [g numberOfAssets];
     
+    cell.textLabel.font = [UIFont boldSystemFontOfSize:16.0f];
     cell.textLabel.text = [NSString stringWithFormat:@"%@ (%d)",[g valueForProperty:ALAssetsGroupPropertyName], gCount];
     [cell.imageView setImage:[UIImage imageWithCGImage:[(ALAssetsGroup*)[assetGroups objectAtIndex:indexPath.row] posterImage]]];
 	[cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
