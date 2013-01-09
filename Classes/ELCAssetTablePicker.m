@@ -68,7 +68,6 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	
-    NSLog(@"enumerating photos");
 
     NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
     [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
@@ -80,7 +79,6 @@
         [elcAsset setParent:self];
         [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
     }];
-    NSLog(@"done enumerating photos");
     [self.navigationItem performSelectorOnMainThread:@selector(setTitle:) withObject:@"Pick Photos" waitUntilDone:NO];
     
     [pool release];

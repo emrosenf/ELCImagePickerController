@@ -57,7 +57,6 @@
             [alert show];
             [alert release];
             
-            NSLog(@"A problem occured %@", [error description]);	                                 
         };	
                 
         // Enumerate Albums
