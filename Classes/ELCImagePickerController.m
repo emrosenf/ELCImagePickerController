@@ -36,20 +36,25 @@
             @autoreleasepool {
                 
 
+                UIImageOrientation orientation = UIImageOrientationUp;
+                NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
+                if (orientationValue != nil) {
+                    orientation = [orientationValue intValue];
+                }
+                
             NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
-            [workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:@"UIImagePickerControllerMediaType"];
-            [workingDictionary setObject:[UIImage imageWithCGImage:[[asset defaultRepresentation] fullScreenImage]] forKey:@"UIImagePickerControllerOriginalImage"];
-            [workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:@"UIImagePickerControllerReferenceURL"];
+            [workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:UIImagePickerControllerMediaType];
+                [workingDictionary setObject:[UIImage imageWithCGImage:[[asset defaultRepresentation] fullResolutionImage] scale:1 orientation:orientation] forKey:UIImagePickerControllerOriginalImage];
+            [workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:UIImagePickerControllerReferenceURL];
                         
-            if([delegate respondsToSelector:@selector(elcImagePickerController:hasMediaWithInfo:)]){
+            /*if([delegate respondsToSelector:@selector(elcImagePickerController:hasMediaWithInfo:)]){
                     [delegate elcImagePickerController:self hasMediaWithInfo:workingDictionary];
-            }
-
-            
+            }*/
                 [retVal addObject:workingDictionary];
 
             [workingDictionary release];
             }
+
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             if ([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
