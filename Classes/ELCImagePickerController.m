@@ -31,6 +31,7 @@
                 willFinishPickingThisManyMediaItems:[NSNumber numberWithInt:_assets.count]];
         }    
 
+        NSMutableArray *retVal = [[[NSMutableArray alloc] init] autorelease];
         for(ALAsset *asset in _assets) {
             @autoreleasepool {
                 
@@ -45,13 +46,16 @@
             }
 
             
+                [retVal addObject:workingDictionary];
 
             [workingDictionary release];
             }
         }
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self popToRootViewControllerAnimated:NO];
-            //[[self parentViewController] dismissModalViewControllerAnimated:YES];
+            if ([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
+                [delegate elcImagePickerController:self didFinishPickingMediaWithInfo:retVal];
+            }
+            
         });
 
     });
