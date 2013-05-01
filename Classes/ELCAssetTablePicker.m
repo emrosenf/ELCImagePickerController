@@ -1,7 +1,7 @@
 //
 //  AssetTablePicker.m
 //
-//  Created by Matt Tuzzolo on 2/15/11.
+//  Created by ELC on 2/15/11.
 //  Copyright 2011 ELC Technologies. All rights reserved.
 //
 
@@ -10,162 +10,159 @@
 #import "ELCAsset.h"
 #import "ELCAlbumPickerController.h"
 
+@interface ELCAssetTablePicker ()
+
+@property (nonatomic, assign) int columns;
+
+@end
 
 @implementation ELCAssetTablePicker
+
+@synthesize parent = _parent;;
+@synthesize selectedAssetsLabel = _selectedAssetsLabel;
+@synthesize assetGroup = _assetGroup;
+@synthesize elcAssets = _elcAssets;
+@synthesize singleSelection = _singleSelection;
+@synthesize columns = _columns;
+
+- (void)viewDidLoad
 {
-    NSInteger start;
-}
-@synthesize parent;
-@synthesize selectedAssetsLabel;
-@synthesize assetGroup, elcAssets, reloadData;
-
--(void)viewDidLoad {
-    self.reloadData = YES;
-	[self.tableView setSeparatorColor:[UIColor clearColor]];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 	[self.tableView setAllowsSelection:NO];
-
+    
     NSMutableArray *tempArray = [[NSMutableArray alloc] init];
     self.elcAssets = tempArray;
     [tempArray release];
 	
-	UIBarButtonItem *doneButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneAction:)] autorelease];
-	[self.navigationItem setRightBarButtonItem:doneButtonItem];
-	[self.navigationItem setTitle:@"Loading..."];
-
-    NSInteger count = self.assetGroup.numberOfAssets;
-    NSInteger startNumberOfAssets = 96 + count%4;
-    start = MAX(0, count-startNumberOfAssets);
-    
-    // Set up the first ~100 photos
-    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start, count > startNumberOfAssets ? startNumberOfAssets : count)];
-    for (int i = 0; i < start; i++){
-        [self.elcAssets addObject:[NSNull null]];
+    if (self.immediateReturn) {
+        
+    } else {
+        UIBarButtonItem *doneButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneAction:)] autorelease];
+        [self.navigationItem setRightBarButtonItem:doneButtonItem];
+        [self.navigationItem setTitle:@"Loading..."];
     }
-    [self.assetGroup enumerateAssetsAtIndexes:indexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-        if(result == nil) 
-        {
-            return;
-        }
-        ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
-        [elcAsset setParent:self];
-        [self.elcAssets addObject:elcAsset];
-    }];
-    [self.tableView reloadData];
-
-    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:MAX(0,ceil(assetGroup.numberOfAssets / 4.0)-1) inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:NO];
     
-    // For some reason it only scrolls about 80% through the final image... This scrolls
-    // the table view all the way to the bottom. 50 is just a number thats bigger than the 
-    // sliver of the image thats covered up.
-    [self.tableView setContentOffset:CGPointMake(0, self.tableView.contentOffset.y+50)];
-
 	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
-    
 }
 
--(void)preparePhotos {
-    
-    
-	@autoreleasepool {
-        
-        NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
-        [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-            if(result == nil)
-            {
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.columns = self.view.bounds.size.width / 80;
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    return YES;
+}
+
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+{
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    self.columns = self.view.bounds.size.width / 80;
+    [self.tableView reloadData];
+}
+
+- (void)preparePhotos
+{
+    @autoreleasepool {
+        [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+            
+            if(result == nil) {
                 return;
             }
-            ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
+            
+            ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:result];
             [elcAsset setParent:self];
-            [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
+            [self.elcAssets addObject:elcAsset];
+            [elcAsset release];
         }];
-        [self.navigationItem performSelectorOnMainThread:@selector(setTitle:) withObject:@"Pick Photos" waitUntilDone:NO];
+        NSLog(@"done enumerating photos");
+        
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+            // scroll to bottom
+            int section = [self numberOfSectionsInTableView:self.tableView] - 1;
+            int row = [self tableView:self.tableView numberOfRowsInSection:section] - 1;
+            if (section >= 0 && row >= 0) {
+                NSIndexPath *ip = [NSIndexPath indexPathForRow:row
+                                                     inSection:section];
+                [self.tableView scrollToRowAtIndexPath:ip
+                                      atScrollPosition:UITableViewScrollPositionBottom
+                                              animated:NO];
+            }
+            
+            [self.navigationItem setTitle:self.singleSelection ? @"Pick Photo" : @"Pick Photos"];
+        });
     }
     
 }
 
-- (void) doneAction:(id)sender {
-	
+- (void)doneAction:(id)sender
+{
 	NSMutableArray *selectedAssetsImages = [[[NSMutableArray alloc] init] autorelease];
-    NSArray *currentlyLoadedAssets = [self.elcAssets copy];
-	for(ELCAsset *elcAsset in currentlyLoadedAssets) 
-    {		
-		if(elcAsset != (id)[NSNull null] && [elcAsset selected]) {
+    
+	for(ELCAsset *elcAsset in self.elcAssets) {
+        
+		if([elcAsset selected]) {
 			
 			[selectedAssetsImages addObject:[elcAsset asset]];
 		}
 	}
-    [(ELCAlbumPickerController*)self.parent selectedAssets:selectedAssetsImages];
+    
+    [self.parent selectedAssets:selectedAssetsImages];
+}
+
+- (void)assetSelected:(id)asset
+{
+    if (self.singleSelection) {
+        
+        for(ELCAsset *elcAsset in self.elcAssets) {
+            if(asset != elcAsset) {
+                elcAsset.selected = NO;
+            }
+        }
+    }
+    if (self.immediateReturn) {
+        NSArray *singleAssetArray = [NSArray arrayWithObject:[asset asset]];
+        [(NSObject *)self.parent performSelector:@selector(selectedAssets:) withObject:singleAssetArray afterDelay:0];
+    }
 }
 
 #pragma mark UITableViewDataSource Delegate Methods
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
     // Return the number of sections.
     return 1;
 }
 
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return ceil(assetGroup.numberOfAssets / 4.0);
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return ceil([self.elcAssets count] / (float)self.columns);
 }
 
-- (NSArray*)assetsForIndexPath:(NSIndexPath*)_indexPath {
-    
-	int index = (_indexPath.row*4);
-	int maxIndex = (_indexPath.row*4+3);
-    
-	// NSLog(@"Getting assets for %d to %d with array count %d", index, maxIndex, [assets count]);
-    
-	if(maxIndex < [self.elcAssets count]) {
-        
-		return [NSArray arrayWithObjects:[self.elcAssets objectAtIndex:index],
-				[self.elcAssets objectAtIndex:index+1],
-				[self.elcAssets objectAtIndex:index+2],
-				[self.elcAssets objectAtIndex:index+3],
-				nil];
-	}
-    
-	else if(maxIndex-1 < [self.elcAssets count]) {
-        
-		return [NSArray arrayWithObjects:[self.elcAssets objectAtIndex:index],
-				[self.elcAssets objectAtIndex:index+1],
-				[self.elcAssets objectAtIndex:index+2],
-				nil];
-	}
-    
-	else if(maxIndex-2 < [self.elcAssets count]) {
-        
-		return [NSArray arrayWithObjects:[self.elcAssets objectAtIndex:index],
-				[self.elcAssets objectAtIndex:index+1],
-				nil];
-	}
-    
-	else if(maxIndex-3 < [self.elcAssets count]) {
-        
-		return [NSArray arrayWithObject:[self.elcAssets objectAtIndex:index]];
-	}
-    
-	return nil;
+- (NSArray *)assetsForIndexPath:(NSIndexPath *)path
+{
+    int index = path.row * self.columns;
+    int length = MIN(self.columns, [self.elcAssets count] - index);
+    return [self.elcAssets subarrayWithRange:NSMakeRange(index, length)];
 }
 
 // Customize the appearance of table view cells.
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
     static NSString *CellIdentifier = @"Cell";
-        
+    
     ELCAssetCell *cell = (ELCAssetCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-
-    NSMutableArray *assets = [[self assetsForIndexPath:indexPath] mutableCopy];
-    [assets removeObjectIdenticalTo:[NSNull null]];
-    if (cell == nil) 
-    {		        
-        cell = [[[ELCAssetCell alloc] initWithAssets:assets reuseIdentifier:CellIdentifier] autorelease];
-    }	
-	else 
-    {		
-		[cell setAssets:assets];
+    
+    if (cell == nil) {
+        cell = [[[ELCAssetCell alloc] initWithAssets:[self assetsForIndexPath:indexPath] reuseIdentifier:CellIdentifier] autorelease];
+        
+    } else {
+		[cell setAssets:[self assetsForIndexPath:indexPath]];
 	}
-
     
     return cell;
 }
@@ -179,21 +176,20 @@
     
     int count = 0;
     
-    for(ELCAsset *asset in self.elcAssets) 
-    {
-		if([asset selected]) 
-        {            
-            count++;	
+    for(ELCAsset *asset in self.elcAssets) {
+		if([asset selected]) {
+            count++;
 		}
 	}
     
     return count;
 }
 
-- (void)dealloc 
+- (void)dealloc
 {
-    [elcAssets release];
-    [selectedAssetsLabel release];
+    [_assetGroup release];
+    [_elcAssets release];
+    [_selectedAssetsLabel release];
     [super dealloc];    
 }
 

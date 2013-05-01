@@ -2,7 +2,7 @@
 //  ELCImagePickerController.m
 //  ELCImagePickerDemo
 //
-//  Created by Collin Ruffenach on 9/9/10.
+//  Created by ELC on 9/9/10.
 //  Copyright 2010 ELC Technologies. All rights reserved.
 //
 
@@ -14,64 +14,65 @@
 
 @implementation ELCImagePickerController
 
-@synthesize delegate, assets=assets;
+@synthesize delegate = _myDelegate;
 
--(void)cancelImagePicker {
-	if([delegate respondsToSelector:@selector(elcImagePickerControllerDidCancel:)]) {
-		[delegate performSelector:@selector(elcImagePickerControllerDidCancel:) withObject:self];
+- (void)cancelImagePicker
+{
+	if([_myDelegate respondsToSelector:@selector(elcImagePickerControllerDidCancel:)]) {
+		[_myDelegate performSelector:@selector(elcImagePickerControllerDidCancel:) withObject:self];
 	}
 }
 
--(void)selectedAssets:(NSArray*)_assets {
-    assets = _assets;
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        if ([delegate respondsToSelector:@selector(elcImagePickerController:willFinishPickingThisManyMediaItems:)]){
-            [self.delegate elcImagePickerController:self 
-                willFinishPickingThisManyMediaItems:[NSNumber numberWithInt:_assets.count]];
-        }    
-
-        NSMutableArray *retVal = [[[NSMutableArray alloc] init] autorelease];
-        for(ALAsset *asset in _assets) {
-            @autoreleasepool {
-                
-
-                UIImageOrientation orientation = UIImageOrientationUp;
-                NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
-                if (orientationValue != nil) {
-                    orientation = [orientationValue intValue];
-                }
-                
-            NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
-            [workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:UIImagePickerControllerMediaType];
-                [workingDictionary setObject:[UIImage imageWithCGImage:[[asset defaultRepresentation] fullResolutionImage] scale:1 orientation:orientation] forKey:UIImagePickerControllerOriginalImage];
-            [workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:UIImagePickerControllerReferenceURL];
-                        
-            /*if([delegate respondsToSelector:@selector(elcImagePickerController:hasMediaWithInfo:)]){
-                    [delegate elcImagePickerController:self hasMediaWithInfo:workingDictionary];
-            }*/
-                [retVal addObject:workingDictionary];
-
-            [workingDictionary release];
-            }
-
+- (void)selectedAssets:(NSArray *)assets
+{
+	NSMutableArray *returnArray = [[[NSMutableArray alloc] init] autorelease];
+	
+	for(ALAsset *asset in assets) {
+        
+        UIImageOrientation orientation = UIImageOrientationUp;
+        NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
+        if (orientationValue != nil) {
+            orientation = [orientationValue intValue];
         }
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if ([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
-                [delegate elcImagePickerController:self didFinishPickingMediaWithInfo:retVal];
-            }
-            
-        });
-
-    });
+        
+		NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
+		[workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:@"UIImagePickerControllerMediaType"];
+        ALAssetRepresentation *assetRep = [asset defaultRepresentation];
+        
+        CGImageRef imgRef = [assetRep fullResolutionImage];
+        UIImage *img = [UIImage imageWithCGImage:imgRef
+                                           scale:1
+                                     orientation:orientation];
+        [workingDictionary setObject:img forKey:UIImagePickerControllerOriginalImage];
+		[workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:@"UIImagePickerControllerReferenceURL"];
+		
+		[returnArray addObject:workingDictionary];
+		
+		[workingDictionary release];
+	}
+	if(_myDelegate != nil && [_myDelegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
+		[_myDelegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:) withObject:self withObject:[NSArray arrayWithArray:returnArray]];
+	} else {
+        [self popToRootViewControllerAnimated:NO];
+    }
 }
 
-
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        return YES;
+    } else {
+        return toInterfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
+    }
+}
 
 #pragma mark -
 #pragma mark Memory management
 
-- (void)didReceiveMemoryWarning {    
+- (void)didReceiveMemoryWarning
+{
+    NSLog(@"ELC Image Picker received memory warning.");
+    
     [super didReceiveMemoryWarning];
 }
 
@@ -80,7 +81,9 @@
 }
 
 
-- (void)dealloc {
+- (void)dealloc
+{
+    NSLog(@"deallocing ELCImagePickerController");
     [super dealloc];
 }
 
